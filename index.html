@@ -2,72 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Offline Student Exam</title>
+<title>Offline Exam System</title>
 
 <style>
-body{
-font-family:Arial;
-background:#eef3f7;
-padding:20px;
-}
+body{font-family:Arial;background:#eef3f7;padding:20px;}
+.container{max-width:900px;margin:auto;background:white;padding:25px;border-radius:12px;}
+h1{text-align:center;}
 
-.container{
-max-width:900px;
-margin:auto;
-background:white;
-padding:25px;
-border-radius:12px;
-box-shadow:0 5px 20px rgba(0,0,0,0.1);
-}
+input{width:100%;padding:10px;margin:10px 0;border-radius:6px;border:1px solid #ccc;}
 
-h1{text-align:center;color:#2c3e50;}
+button{width:100%;padding:12px;background:#27ae60;color:white;border:none;border-radius:6px;margin-top:10px;cursor:pointer;}
 
-input[type="text"]{
-width:100%;
-padding:12px;
-margin:10px 0;
-border-radius:8px;
-border:1px solid #ccc;
-}
+.q{background:#f9f9f9;padding:10px;margin:10px 0;border-left:4px solid green;}
 
-button{
-width:100%;
-padding:14px;
-margin-top:15px;
-border:none;
-border-radius:8px;
-background:#27ae60;
-color:white;
-font-size:18px;
-cursor:pointer;
-}
-
-.q{
-margin:15px 0;
-padding:15px;
-background:#f9f9f9;
-border-left:4px solid #27ae60;
-border-radius:8px;
-}
-
-label{
-display:block;
-margin:6px 0;
-padding:8px;
-background:white;
-border:1px solid #ddd;
-border-radius:6px;
-cursor:pointer;
-}
-
-#exam{display:none;}
-
-#result{
-margin-top:20px;
-text-align:center;
-font-size:22px;
-font-weight:bold;
-}
+#exam,#teacherPanel{display:none;}
+#result{text-align:center;font-size:20px;margin-top:15px;}
 </style>
 </head>
 
@@ -75,12 +24,12 @@ font-weight:bold;
 
 <div class="container">
 
-<h1>⚜️ Student Offline Exam</h1>
+<h1>⚜️ Exam System</h1>
 
-<!-- START SCREEN -->
+<!-- STUDENT LOGIN -->
 <div id="start">
 <h3>Enter Your Name</h3>
-<input type="text" id="studentName" placeholder="Your name">
+<input type="text" id="studentName">
 <button onclick="startExam()">Start Exam</button>
 </div>
 
@@ -94,27 +43,9 @@ font-weight:bold;
 </div>
 
 <div class="q">
-<p>2. Main goal of scouts?</p>
+<p>2. Main goal?</p>
 <label><input type="radio" name="q2" value="1">Community service</label>
 <label><input type="radio" name="q2" value="0">Money</label>
-</div>
-
-<div class="q">
-<p>3. First scout camp?</p>
-<label><input type="radio" name="q3" value="1">England</label>
-<label><input type="radio" name="q3" value="0">USA</label>
-</div>
-
-<div class="q">
-<p>4. Scouts learn first aid?</p>
-<label><input type="radio" name="q4" value="1">Yes</label>
-<label><input type="radio" name="q4" value="0">No</label>
-</div>
-
-<div class="q">
-<p>5. Scout motto?</p>
-<label><input type="radio" name="q5" value="1">Be Prepared</label>
-<label><input type="radio" name="q5" value="0">Be Rich</label>
 </div>
 
 <button onclick="finishExam()">Finish Exam</button>
@@ -122,71 +53,98 @@ font-weight:bold;
 <div id="result"></div>
 
 </div>
+
+<!-- TEACHER LOGIN -->
+<div id="teacherLogin">
+<h3>Teacher Login</h3>
+<input type="text" id="user" placeholder="Username">
+<input type="password" id="pass" placeholder="Password">
+<button onclick="login()">Login</button>
+</div>
+
+<!-- TEACHER PANEL -->
+<div id="teacherPanel">
+<h3>Teacher Panel</h3>
+<div id="teacherData"></div>
+<button onclick="resetExam()">Reset Exam</button>
+</div>
+
 </div>
 
 <script>
 
-let student = "";
-
-/* 🔒 منع إعادة الامتحان بعد الريفريش */
+// 🔒 إذا الامتحان مخلص → حول على لوجن الأستاذ
 if(localStorage.getItem("exam_done") === "true"){
-document.body.innerHTML = `
-<h2 style="text-align:center;margin-top:80px;color:red;">
-❌ You already completed this exam
-</h2>`;
+document.getElementById("start").style.display="none";
+document.getElementById("teacherLogin").style.display="block";
 }
+
+let student="";
 
 function startExam(){
+student=document.getElementById("studentName").value;
 
-if(localStorage.getItem("exam_done") === "true"){
+if(student.trim()==""){
+alert("Enter name");
 return;
 }
 
-student = document.getElementById("studentName").value;
-
-if(student.trim() === ""){
-alert("Enter your name");
-return;
-}
-
-document.getElementById("start").style.display = "none";
-document.getElementById("exam").style.display = "block";
+document.getElementById("start").style.display="none";
+document.getElementById("exam").style.display="block";
 }
 
 function finishExam(){
 
-let score = 0;
+let score=0;
 
-for(let i=1;i<=5;i++){
-let ans = document.querySelector('input[name="q'+i+'"]:checked');
+for(let i=1;i<=2;i++){
+let ans=document.querySelector('input[name="q'+i+'"]:checked');
 
 if(!ans){
-alert("Please answer all questions");
+alert("Answer all questions");
 return;
 }
 
-if(ans.value == "1") score++;
+if(ans.value=="1") score++;
 }
 
-/* 🔒 قفل الامتحان نهائيًا */
-document.querySelectorAll("input").forEach(i => i.disabled = true);
-
-/* 🔒 تسجيل أنه انتهى */
+// تخزين البيانات
 localStorage.setItem("exam_done","true");
+localStorage.setItem("student_name",student);
+localStorage.setItem("score",score);
+
+// قفل
+document.querySelectorAll("input").forEach(i=>i.disabled=true);
 
 document.getElementById("result").innerHTML =
-"✅ Exam Finished<br>" +
-"Student: " + student + "<br>" +
-"Score: " + score + " / 5<br>";
-
-if(score == 5){
-document.getElementById("result").innerHTML += "<br>🌟 Excellent!";
-}else if(score >= 3){
-document.getElementById("result").innerHTML += "<br>👍 Good job!";
-}else{
-document.getElementById("result").innerHTML += "<br>📚 Keep practicing!";
+"Exam Finished<br>Score: "+score+"/2";
 }
 
+// تسجيل دخول الأستاذ
+function login(){
+
+let u=document.getElementById("user").value;
+let p=document.getElementById("pass").value;
+
+if(u==="admin" && p==="1234"){
+
+document.getElementById("teacherLogin").style.display="none";
+document.getElementById("teacherPanel").style.display="block";
+
+// عرض البيانات
+document.getElementById("teacherData").innerHTML =
+"Student: "+localStorage.getItem("student_name")+"<br>"+
+"Score: "+localStorage.getItem("score");
+
+}else{
+alert("Wrong login");
+}
+}
+
+// إعادة الامتحان
+function resetExam(){
+localStorage.clear();
+location.reload();
 }
 
 </script>
